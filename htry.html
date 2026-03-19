@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Memory Journey</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Georgia', serif;
+      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      overflow: hidden;
+      min-height: 100vh;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .background-effects {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .floating-heart {
+      position: absolute;
+      color: rgba(255, 255, 255, 0.3);
+      font-size: 20px;
+      animation: float 8s infinite linear;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+      }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    .color-changer {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10;
+      display: flex;
+      gap: 10px;
+    }
+
+    .color-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .color-btn:hover {
+      transform: scale(1.2);
+      border-color: rgba(255,255,255,0.8);
+    }
+
+    .journey-canvas {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      z-index: 2;
+    }
+
+    svg.path {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+
+    .path-line {
+      stroke: rgba(255, 255, 255, 0.3);
+      stroke-width: 6;
+      fill: none;
+    }
+
+    .milestone {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      font-size: 2em;
+      color: white;
+      text-align: center;
+      line-height: 80px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      transition: transform 0.4s;
+      cursor: pointer;
+      border: 3px solid white;
+    }
+
+    .milestone.locked {
+      background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .milestone.unlocked:hover {
+      transform: scale(1.15);
+    }
+
+    .player {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+      border-radius: 50% 50% 50% 0;
+      border: 3px solid rgba(255, 255, 255, 0.6);
+      animation: glow 2s infinite alternate;
+      z-index: 5;
+    }
+
+    @keyframes glow {
+      0% { box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+      100% { box-shadow: 0 6px 25px rgba(255,235,59,0.6); }
+    }
+
+    .controls {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      z-index: 10;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .modal-content {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      color: white;
+      max-width: 400px;
+    }
+
+    .close-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: white;
+      color: #764ba2;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+
+    .title {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-size: 2em;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <div class="title">Memory Journey</div>
+
+  <div class="color-changer">
+    <div class="color-btn" style="background: linear-gradient(135deg, #ff9a9e, #fecfef);" onclick="changeBackground('pink')"></div>
+    <div class="color-btn" style="background: linear-gradient(135deg, #a8edea, #fed6e3);" onclick="changeBackground('mint')"></div>
+    <div class="color-btn" style="background: linear-gradient(135deg, #d299c2, #fef9d7);" onclick="changeBackground('lavender')"></div>
+    <div class="color-btn" style="background: linear-gradient(135deg, #89f7fe, #66a6ff);" onclick="changeBackground('ocean')"></div>
+  </div>
+
+  <div class="background-effects" id="hearts"></div>
+
+  <div class="journey-canvas">
+    <svg class="path" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <path class="path-line" d="M 10 10 Q 30 5 50 15 Q 70 25 90 20 Q 80 40 70 50 Q 60 60 50 55 Q 40 50 30 60 Q 20 70 10 75 Q 15 85 30 90 Q 50 95 70 85 Q 90 75 85 90"/>
+    </svg>
+    <div class="player" id="player"></div>
+  </div>
+
+  <div class="controls">
+    <p><strong>Use Arrow Keys to Move</strong></p>
+    <p>Press ENTER to open milestone</p>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h2 id="modal-title">Title</h2>
+      <p id="modal-message">Message</p>
+      <button class="close-btn" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const player = document.getElementById('player');
+    const modal = document.getElementById('modal');
+    const milestones = [
+      { title: "First Light", message: "The moment it all began.", x: 10, y: 10 },
+      { title: "Morning Coffee", message: "Warmth shared in silence.", x: 25, y: 8 },
+      { title: "First Adventure", message: "Stepping out into the world together.", x: 40, y: 12 },
+      { title: "Special Moments", message: "Cherished small things.", x: 55, y: 18 },
+      { title: "Cozy Evenings", message: "Peace in presence.", x: 70, y: 22 },
+      { title: "Blooming Love", message: "Love taking shape.", x: 85, y: 21 },
+    ];
+
+    let currentIndex = 0;
+
+    function createFloatingHearts() {
+      const container = document.getElementById('hearts');
+      const symbols = ['💕','💖','💛','💜','💚'];
+      for (let i = 0; i < 20; i++) {
+        const heart = document.createElement('div');
+        heart.className = 'floating-heart';
+        heart.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+        heart.style.left = Math.random() * 100 + '%';
+        heart.style.animationDuration = (5 + Math.random() * 5) + 's';
+        heart.style.fontSize = (15 + Math.random() * 20) + 'px';
+        container.appendChild(heart);
+      }
+    }
+
+    function movePlayer(index) {
+      const m = milestones[index];
+      player.style.left = `calc(${m.x}% - 20px)`;
+      player.style.top = `calc(${m.y}% - 20px)`;
+    }
+
+    function openModal() {
+      const m = milestones[currentIndex];
+      document.getElementById('modal-title').textContent = m.title;
+      document.getElementById('modal-message').textContent = m.message;
+      modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+      modal.style.display = 'none';
+    }
+
+    function changeBackground(theme) {
+      const themes = {
+        pink: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)',
+        mint: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 50%, #fed6e3 100%)',
+        lavender: 'linear-gradient(135deg, #d299c2 0%, #fef9d7 50%, #fef9d7 100%)',
+        ocean: 'linear-gradient(135deg, #89f7fe 0%, #66a6ff 50%, #66a6ff 100%)'
+      };
+      document.body.style.background = themes[theme];
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+        if (currentIndex < milestones.length - 1) currentIndex++;
+        movePlayer(currentIndex);
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+        if (currentIndex > 0) currentIndex--;
+        movePlayer(currentIndex);
+      } else if (e.key === 'Enter') {
+        openModal();
+      } else if (e.key === 'Escape') {
+        closeModal();
+      }
+    });
+
+    createFloatingHearts();
+    movePlayer(0);
+  </script>
+</body>
+</html>

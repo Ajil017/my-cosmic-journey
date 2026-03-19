@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Path Journey</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .background-changer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .bg-btn {
+            margin: 5px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            transition: transform 0.3s;
+        }
+
+        .bg-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .bg-purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .bg-pink { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .bg-blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .bg-green { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .bg-orange { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .path {
+            position: absolute;
+            width: 8px;
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            border-radius: 4px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            animation: pathGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes pathGlow {
+            0% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.5); }
+            100% { box-shadow: 0 0 30px rgba(255, 255, 255, 0.8); }
+        }
+
+        .milestone {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            font-weight: bold;
+            color: white;
+            font-size: 24px;
+        }
+
+        .milestone.locked {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            cursor: not-allowed;
+        }
+
+        .milestone.unlocked {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            animation: unlockPulse 1s ease-in-out;
+        }
+
+        .milestone.current {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            animation: currentPulse 2s ease-in-out infinite;
+        }
+
+        .milestone:hover:not(.locked) {
+            transform: scale(1.2);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        @keyframes unlockPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes currentPulse {
+            0% { transform: scale(1); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 15px 40px rgba(243, 156, 18, 0.6); }
+            100% { transform: scale(1); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); }
+        }
+
+        .lock-icon {
+            font-size: 30px;
+        }
+
+        .player {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.6);
+            z-index: 100;
+            border: 3px solid white;
+        }
+
+        .player::before {
+            content: '➤';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            position: relative;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 80%;
+            max-width: 500px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: modalSlideIn 0.5s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-image {
+            width: 200px;
+            height: 150px;
+            background: linear-gradient(135deg, #ff9a9e, #fecfef);
+            border-radius: 15px;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            color: white;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .close:hover {
+            transform: scale(1.2);
+        }
+
+        .instructions {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            font-size: 14px;
+        }
+
+        .error-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 1001;
+            animation: errorShake 0.5s ease-in-out;
+        }
+
+        @keyframes errorShake {
+            0%, 100% { transform: translate(-50%, -50%); }
+            25% { transform: translate(-45%, -50%); }
+            75% { transform: translate(-55%, -50%); }
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 300px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .floating-hearts {
+            position: absolute;
+            pointer-events: none;
+            font-size: 20px;
+            animation: floatUp 3s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) scale(1.5);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-changer">
+        <button class="bg-btn bg-purple" onclick="changeBackground('purple')">💜</button>
+        <button class="bg-btn bg-pink" onclick="changeBackground('pink')">💗</button>
+        <button class="bg-btn bg-blue" onclick="changeBackground('blue')">💙</button>
+        <button class="bg-btn bg-green" onclick="changeBackground('green')">💚</button>
+        <button class="bg-btn bg-orange" onclick="changeBackground('orange')">🧡</button>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="instructions">
+        Use Arrow Keys or WASD to move<br>
+        Press Enter to open milestones<br>
+        Collect memories along your journey! 💫
+    </div>
+
+    <div class="game-container" id="gameContainer">
+        <div class="player" id="player"></div>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h2 id="modalTitle">Memory Unlocked!</h2>
+            <div class="modal-image" id="modalImage">🎉</div>
+            <p id="modalMessage">You've discovered a beautiful memory!</p>
+        </div>
+    </div>
+
+    <div class="error-message" id="errorMessage">
+        It can't be easily finished, enjoy each and every moment! 🌟
+    </div>
+
+    <script>
+        class TravelingPathGame {
+            constructor() {
+                this.milestones = [
+                    { id: 1, title: "First Steps", message: "Every journey begins with a single step. This is where your beautiful story starts!", emoji: "🌱" },
+                    { id: 2, title: "Growing Bonds", message: "Like flowers blooming, relationships grow with care and attention.", emoji: "🌸" },
+                    { id: 3, title: "Shared Laughter", message: "The moments of joy and laughter that light up our hearts.", emoji: "😊" },
+                    { id: 4, title: "Overcoming Challenges", message: "Together we face storms and come out stronger on the other side.", emoji: "🌈" },
+                    { id: 5, title: "Creating Memories", message: "Every moment together becomes a precious memory to treasure.", emoji: "📸" },
+                    { id: 6, title: "Heart Connections", message: "When hearts connect, distance becomes meaningless.", emoji: "💕" },
+                    { id: 7, title: "Adventures Together", message: "The world becomes more beautiful when explored with someone special.", emoji: "🌍" },
+                    { id: 8, title: "Support & Care", message: "Being there for each other through thick and thin.", emoji: "🤗" },
+                    { id: 9, title: "Dreams Shared", message: "When we share our dreams, they become twice as bright.", emoji: "⭐" },
+                    { id: 10, title: "Understanding", message: "True connection comes from understanding without words.", emoji: "🌟" },
+                    { id: 11, title: "Trust & Faith", message: "Building unbreakable trust, one moment at a time.", emoji: "🔐" },
+                    { id: 12, title: "Eternal Bond", message: "Some bonds transcend time and space, lasting forever.", emoji: "♾️" }
+                ];
+
+                this.currentMilestone = 0;
+                this.playerPosition = { x: 0, y: 0 };
+                this.pathPoints = [];
+                this.milestoneElements = [];
+                
+                this.init();
+            }
+
+            init() {
+                this.createPath();
+                this.createMilestones();
+                this.setupPlayer();
+                this.setupEventListeners();
+                this.updateProgress();
+            }
+
+            createPath() {
+                const container = document.getElementById('gameContainer');
+                const containerWidth = window.innerWidth;
+                const containerHeight = window.innerHeight;
+                
+                // Create S-shaped path points
+                const segments = 200;
+                for (let i = 0; i <= segments; i++) {
+                    const t = i / segments;
+                    const x = containerWidth * 0.1 + (containerWidth * 0.8) * t;
+                    const y = containerHeight * 0.1 + (containerHeight * 0.8) * (0.5 + 0.4 * Math.sin(t * Math.PI * 3));
+                    this.pathPoints.push({ x, y });
+                }
+
+                // Create visual path segments
+                for (let i = 0; i < this.pathPoints.length - 1; i++) {
+                    const point1 = this.pathPoints[i];
+                    const point2 = this.pathPoints[i + 1];
+                    
+                    const pathElement = document.createElement('div');
+                    pathElement.className = 'path';
+                    
+                    const dx = point2.x - point1.x;
+                    const dy = point2.y - point1.y;
+                    const length = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                    
+                    pathElement.style.width = `${length}px`;
+                    pathElement.style.left = `${point1.x}px`;
+                    pathElement.style.top = `${point1.y}px`;
+                    pathElement.style.transform = `rotate(${angle}deg)`;
+                    pathElement.style.transformOrigin = '0 50%';
+                    
+                    container.appendChild(pathElement);
+                }
+            }
+
+            createMilestones() {
+                const container = document.getElementById('gameContainer');
+                
+                this.milestones.forEach((milestone, index) => {
+                    const pathIndex = Math.floor((index / (this.milestones.length - 1)) * (this.pathPoints.length - 1));
+                    const point = this.pathPoints[pathIndex];
+                    
+                    const milestoneElement = document.createElement('div');
+                    milestoneElement.className = index === 0 ? 'milestone current' : 'milestone locked';
+                    milestoneElement.style.left = `${point.x - 40}px`;
+                    milestoneElement.style.top = `${point.y - 40}px`;
+                    milestoneElement.innerHTML = index === 0 ? milestone.id : '<div class="lock-icon">🔒</div>';
+                    milestoneElement.dataset.index = index;
+                    
+                    milestoneElement.addEventListener('click', () => this.handleMilestoneClick(index));
+                    
+                    container.appendChild(milestoneElement);
+                    this.milestoneElements.push(milestoneElement);
+                });
+            }
+
+            setupPlayer() {
+                const player = document.getElementById('player');
+                const startPoint = this.pathPoints[0];
+                this.playerPosition = { x: startPoint.x, y: startPoint.y };
+                player.style.left = `${startPoint.x - 15}px`;
+                player.style.top = `${startPoint.y - 15}px`;
+            }
+
+            setupEventListeners() {
+                document.addEventListener('keydown', (e) => this.handleKeyPress(e));
+                document.getElementById('closeModal').addEventListener('click', () => this.closeModal());
+                
+                // Touch controls for mobile
+                let touchStartX = 0;
+                let touchStartY = 0;
+                
+                document.addEventListener('touchstart', (e) => {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                });
+                
+                document.addEventListener('touchend', (e) => {
+                    const touchEndX = e.changedTouches[0].clientX;
+                    const touchEndY = e.changedTouches[0].clientY;
+                    const deltaX = touchEndX - touchStartX;
+                    const deltaY = touchEndY - touchStartY;
+                    
+                    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                        this.movePlayer(deltaX > 0 ? 'right' : 'left');
+                    } else {
+                        this.movePlayer(deltaY > 0 ? 'down' : 'up');
+                    }
+                });
+            }
+
+            handleKeyPress(e) {
+                e.preventDefault();
+                switch(e.key) {
+                    case 'ArrowUp':
+                    case 'w':
+                    case 'W':
+                        this.movePlayer('up');
+                        break;
+                    case 'ArrowDown':
+                    case 's':
+                    case 'S':
+                        this.movePlayer('down');
+                        break;
+                    case 'ArrowLeft':
+                    case 'a':
+                    case 'A':
+                        this.movePlayer('left');
+                        break;
+                    case 'ArrowRight':
+                    case 'd':
+                    case 'D':
+                        this.movePlayer('right');
+                        break;
+                    case 'Enter':
+                        this.handleEnterPress();
+                        break;
+                }
+            }
+
+            movePlayer(direction) {
+                const speed = 10;
+                let newX = this.playerPosition.x;
+                let newY = this.playerPosition.y;
+
+                switch(direction) {
+                    case 'up': newY -= speed; break;
+                    case 'down': newY += speed; break;
+                    case 'left': newX -= speed; break;
+                    case 'right': newX += speed; break;
+                }
+
+                // Find closest point on path
+                const closestPoint = this.findClosestPathPoint(newX, newY);
+                
+                // Check if movement is towards next milestone
+                const currentMilestonePathIndex = Math.floor((this.currentMilestone / (this.milestones.length - 1)) * (this.pathPoints.length - 1));
+                const nextMilestonePathIndex = Math.floor(((this.currentMilestone + 1) / (this.milestones.length - 1)) * (this.pathPoints.length - 1));
+                
+                const currentPathIndex = this.pathPoints.findIndex(point => 
+                    Math.abs(point.x - closestPoint.x) < 5 && Math.abs(point.y - closestPoint.y) < 5
+                );
+
+                if (currentPathIndex >= currentMilestonePathIndex && currentPathIndex <= nextMilestonePathIndex) {
+                    this.playerPosition = closestPoint;
+                    const player = document.getElementById('player');
+                    player.style.left = `${closestPoint.x - 15}px`;
+                    player.style.top = `${closestPoint.y - 15}px`;
+                    
+                    this.checkMilestoneReached();
+                } else if (this.currentMilestone < this.milestones.length - 1) {
+                    this.showErrorMessage();
+                }
+            }
+
+            findClosestPathPoint(x, y) {
+                let closestPoint = this.pathPoints[0];
+                let minDistance = Infinity;
+
+                for (let point of this.pathPoints) {
+                    const distance = Math.sqrt((x - point.x) ** 2 + (y - point.y) ** 2);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestPoint = point;
+                    }
+                }
+
+                return closestPoint;
+            }
+
+            checkMilestoneReached() {
+                if (this.currentMilestone < this.milestones.length - 1) {
+                    const nextMilestonePathIndex = Math.floor(((this.currentMilestone + 1) / (this.milestones.length - 1)) * (this.pathPoints.length - 1));
+                    const targetPoint = this.pathPoints[nextMilestonePathIndex];
+                    
+                    const distance = Math.sqrt(
+                        (this.playerPosition.x - targetPoint.x) ** 2 + 
+                        (this.playerPosition.y - targetPoint.y) ** 2
+                    );
+
+                    if (distance < 50) {
+                        this.unlockMilestone(this.currentMilestone + 1);
+                    }
+                }
+            }
+
+            unlockMilestone(milestoneIndex) {
+                if (milestoneIndex < this.milestones.length) {
+                    this.currentMilestone = milestoneIndex;
+                    const milestoneElement = this.milestoneElements[milestoneIndex];
+                    
+                    milestoneElement.className = 'milestone current';
+                    milestoneElement.innerHTML = this.milestones[milestoneIndex].id;
+                    
+                    // Update previous milestone to unlocked
+                    if (milestoneIndex > 0) {
+                        const prevElement = this.milestoneElements[milestoneIndex - 1];
+                        prevElement.className = 'milestone unlocked';
+                    }
+
+                    this.createFloatingHearts(milestoneElement);
+                    this.updateProgress();
+                }
+            }
+
+            handleMilestoneClick(index) {
+                if (index <= this.currentMilestone) {
+                    this.openMilestone(index);
+                }
+            }
+
+            handleEnterPress() {
+                const nearbyMilestone = this.findNearbyMilestone();
+                if (nearbyMilestone !== -1 && nearbyMilestone <= this.currentMilestone) {
+                    this.openMilestone(nearbyMilestone);
+                }
+            }
+
+            findNearbyMilestone() {
+                for (let i = 0; i <= this.currentMilestone; i++) {
+                    const pathIndex = Math.floor((i / (this.milestones.length - 1)) * (this.pathPoints.length - 1));
+                    const point = this.pathPoints[pathIndex];
+                    const distance = Math.sqrt(
+                        (this.playerPosition.x - point.x) ** 2 + 
+                        (this.playerPosition.y - point.y) ** 2
+                    );
+                    if (distance < 60) return i;
+                }
+                return -1;
+            }
+
+            openMilestone(index) {
+                const milestone = this.milestones[index];
+                document.getElementById('modalTitle').textContent = milestone.title;
+                document.getElementById('modalMessage').textContent = milestone.message;
+                document.getElementById('modalImage').textContent = milestone.emoji;
+                document.getElementById('modal').style.display = 'block';
+            }
+
+            closeModal() {
+                document.getElementById('modal').style.display = 'none';
+            }
+
+            showErrorMessage() {
+                const errorMsg = document.getElementById('errorMessage');
+                errorMsg.style.display = 'block';
+                setTimeout(() => {
+                    errorMsg.style.display = 'none';
+                }, 2000);
+            }
+
+            createFloatingHearts(element) {
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        const heart = document.createElement('div');
+                        heart.className = 'floating-hearts';
+                        heart.textContent = '💖';
+                        heart.style.left = `${element.offsetLeft + Math.random() * 80}px`;
+                        heart.style.top = `${element.offsetTop + Math.random() * 80}px`;
+                        document.getElementById('gameContainer').appendChild(heart);
+                        
+                        setTimeout(() => heart.remove(), 3000);
+                    }, i * 200);
+                }
+            }
+
+            updateProgress() {
+                const progress = ((this.currentMilestone + 1) / this.milestones.length) * 100;
+                document.getElementById('progressFill').style.width = `${progress}%`;
+            }
+        }
+
+        function changeBackground(color) {
+            const backgrounds = {
+                purple: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                pink: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                blue: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                green: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                orange: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+            };
+            document.body.style.background = backgrounds[color];
+        }
+
+        // Initialize the game when page loads
+        window.addEventListener('load', () => {
+            new TravelingPathGame();
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            location.reload();
+        });
+    </script>
+</body>
+</html>

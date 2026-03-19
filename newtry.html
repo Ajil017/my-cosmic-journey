@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Lane - Milestone Journey</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            overflow: hidden;
+            background: linear-gradient(45deg, #ff9a9e, #fecfef, #fecfef, #ff9a9e);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            height: 100vh;
+            position: relative;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .background-effects {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .floating-heart {
+            position: absolute;
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.3);
+            animation: float 8s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
+            50% { transform: translateY(-20px) rotate(10deg); opacity: 0.6; }
+        }
+
+        .journey-canvas {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+        }
+
+        .path {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+        }
+
+        .path-line {
+            stroke: rgba(255, 255, 255, 0.8);
+            stroke-width: 4;
+            fill: none;
+            stroke-dasharray: 10, 5;
+            animation: pathPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pathPulse {
+            0%, 100% { stroke-width: 4; opacity: 0.8; }
+            50% { stroke-width: 6; opacity: 1; }
+        }
+
+        .milestone {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            z-index: 5;
+            border: 3px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .milestone.locked {
+            background: linear-gradient(45deg, #ccc, #999);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .milestone.locked::before {
+            content: '🔒';
+            position: absolute;
+            font-size: 30px;
+            color: #666;
+        }
+
+        .milestone.unlocked {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            animation: unlock 0.5s ease;
+        }
+
+        @keyframes unlock {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .milestone:hover {
+            transform: scale(1.15);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+
+        .milestone.locked:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .player {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #ff4757, #ff3838);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            transition: all 0.3s ease;
+            z-index: 10;
+            transform-origin: center;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.6);
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 25px;
+            border-radius: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            z-index: 20;
+            backdrop-filter: blur(10px);
+        }
+
+        .controls p {
+            margin: 5px 0;
+            color: #333;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .color-changer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 20;
+        }
+
+        .color-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 3px solid white;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .color-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .color-btn.sunset { background: linear-gradient(45deg, #ff9a9e, #fecfef); }
+        .color-btn.ocean { background: linear-gradient(45deg, #667eea, #764ba2); }
+        .color-btn.forest { background: linear-gradient(45deg, #11998e, #38ef7d); }
+        .color-btn.lavender { background: linear-gradient(45deg, #e0c3fc, #9bb5ff); }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(45deg, #ff9a9e, #fecfef);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.show .modal-content {
+            transform: scale(1);
+        }
+
+        .modal h2 {
+            color: white;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .modal img {
+            width: 100%;
+            max-width: 300px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .modal p {
+            color: white;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: white;
+            color: #ff9a9e;
+        }
+
+        .error-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 71, 87, 0.95);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            font-size: 18px;
+            z-index: 1001;
+            display: none;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(255, 71, 87, 0.4);
+            backdrop-filter: blur(10px);
+        }
+
+        .title {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            z-index: 20;
+        }
+
+        @media (max-width: 768px) {
+            .milestone {
+                width: 60px;
+                height: 60px;
+                font-size: 18px;
+            }
+            
+            .player {
+                width: 30px;
+                height: 30px;
+            }
+            
+            .title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="title">Memory Lane Journey</div>
+    
+    <div class="color-changer">
+        <div class="color-btn sunset" onclick="changeBackground('sunset')"></div>
+        <div class="color-btn ocean" onclick="changeBackground('ocean')"></div>
+        <div class="color-btn forest" onclick="changeBackground('forest')"></div>
+        <div class="color-btn lavender" onclick="changeBackground('lavender')"></div>
+    </div>
+
+    <div class="container">
+        <div class="background-effects"></div>
+        
+        <div class="journey-canvas">
+            <svg class="path" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path class="path-line" id="journey-path" d="M 10 10 Q 30 5 50 15 Q 70 25 90 20 Q 80 40 70 50 Q 60 60 50 55 Q 40 50 30 60 Q 20 70 10 75 Q 15 85 30 90 Q 50 95 70 85 Q 90 75 85 90"></path>
+            </svg>
+            
+            <div class="player" id="player"></div>
+            
+            <!-- Milestones will be dynamically positioned -->
+        </div>
+    </div>
+
+    <div class="controls">
+        <p><strong>Use Arrow Keys to Move</strong></p>
+        <p>Press ENTER to open milestones</p>
+        <p>Enjoy every moment! 💕</p>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2 id="modal-title"></h2>
+            <img id="modal-image" src="" alt="Milestone Image">
+            <p id="modal-message"></p>
+            <button class="close-btn" onclick="closeModal()">Continue Journey</button>
+        </div>
+    </div>
+
+    <div class="error-message" id="error-message">
+        It can't be easily finished, enjoy each and every moment! 💕
+    </div>
+
+    <script>
+        const milestones = [
+            { title: "First Meeting", message: "The moment our eyes first met, and the world seemed to stop. A spark that would ignite a beautiful journey.", image: "https://images.unsplash.com/photo-1518621012-2d340ba3e5c2?w=400&h=300&fit=crop" },
+            { title: "First Date", message: "Nervous butterflies, genuine laughter, and the beginning of something magical. Time flew by as we discovered each other.", image: "https://images.unsplash.com/photo-1464207687429-7505649dae38?w=400&h=300&fit=crop" },
+            { title: "First Kiss", message: "Under the starlit sky, our hearts beat as one. A moment of pure magic that sealed our connection forever.", image: "https://images.unsplash.com/photo-1502635385003-ee1e6a1a742d?w=400&h=300&fit=crop" },
+            { title: "First Adventure", message: "Exploring new places together, creating memories that would last a lifetime. Every step an adventure with you.", image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=300&fit=crop" },
+            { title: "First 'I Love You'", message: "Words that changed everything. Spoken with trembling hearts and eyes full of tears of joy.", image: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=400&h=300&fit=crop" },
+            { title: "Moving In Together", message: "Creating our first home together, where love grew stronger with each passing day. Our sanctuary of happiness.", image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=300&fit=crop" },
+            { title: "First Challenge", message: "Standing strong together through difficult times. Proving that our love could weather any storm.", image: "https://images.unsplash.com/photo-1520637836862-4d197d17c55a?w=400&h=300&fit=crop" },
+            { title: "The Proposal", message: "On bended knee, with tears of joy, asking you to be mine forever. The most beautiful 'yes' ever spoken.", image: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=400&h=300&fit=crop" },
+            { title: "Wedding Day", message: "Surrounded by love, we promised forever. The beginning of our beautiful life as one.", image: "https://images.unsplash.com/photo-1519741497674-611481863552?w=400&h=300&fit=crop" },
+            { title: "First Anniversary", message: "Celebrating one year of marriage, and a lifetime of memories already created. Here's to forever more.", image: "https://images.unsplash.com/photo-1464207687429-7505649dae38?w=400&h=300&fit=crop" },
+            { title: "New Beginnings", message: "Starting a family, expanding our love, and creating new chapters in our beautiful story together.", image: "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=400&h=300&fit=crop" },
+            { title: "Forever Together", message: "Looking ahead to all the adventures still to come. Growing old together, hand in hand, heart to heart.", image: "https://images.unsplash.com/photo-1516589091380-5d8e87df6999?w=400&h=300&fit=crop" }
+        ];
+
+        let currentMilestone = 0;
+        let playerPosition = 0;
+        const pathLength = 1000; // Total path length for calculation
+        const player = document.getElementById('player');
+        const modal = document.getElementById('modal');
+        const errorMessage = document.getElementById('error-message');
+
+        // Create floating hearts
+        function createFloatingHearts() {
+            const container = document.querySelector('.background-effects');
+            for (let i = 0; i < 15; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'floating-heart';
+                heart.innerHTML = '💕';
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.top = Math.random() * 100 + '%';
+                heart.style.animationDelay = Math.random() * 8 + 's';
+                heart.style.fontSize = (Math.random() * 20 + 15) + 'px';
+                container.appendChild(heart);
+            }
+        }
+
+        // Position milestones along the S-curve
+        function positionMilestones() {
+            const canvas = document.querySelector('.journey-canvas');
+            const pathPoints = [
+                { x: 10, y: 10 }, { x: 25, y: 8 }, { x: 40, y: 12 }, { x: 55, y: 18 },
+                { x: 70, y: 22 }, { x: 85, y: 21 }, { x: 78, y: 35 }, { x: 65, y: 48 },
+                { x: 52, y: 57 }, { x: 38, y: 55 }, { x: 25, y: 65 }, { x: 15, y: 80 }
+            ];
+
+            milestones.forEach((milestone, index) => {
+                const milestoneDiv = document.createElement('div');
+                milestoneDiv.className = index === 0 ? 'milestone unlocked' : 'milestone locked';
+                milestoneDiv.innerHTML = index === 0 ? (index + 1) : '';
+                milestoneDiv.style.left = `calc(${pathPoints[index].x}% - 40px)`;
+                milestoneDiv.style.top = `calc(${pathPoints[index].y}% - 40px)`;
+                milestoneDiv.onclick = () => openMilestone(index);
+                canvas.appendChild(milestoneDiv);
+            });
+
+            // Position player at first milestone
+            const firstPoint = pathPoints[0];
+            player.style.left = `calc(${firstPoint.x}% - 20px)`;
+            player.style.top = `calc(${firstPoint.y}% - 20px)`;
+        }
+
+        function openMilestone(index) {
+            if (index <= currentMilestone) {
+                const milestone = milestones[index];
+                document.getElementById('modal-title').textContent = milestone.title;
+                document.getElementById('modal-image').src = milestone.image;
+                document.getElementById('modal-message').textContent = milestone.message;
+                modal.style.display = 'flex';
+                setTimeout(() => modal.classList.add('show'), 10);
+            } else {
+                showError();
+            }
+        }
+
+        function closeModal() {
+            modal.classList.remove('show');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+
+        function showError() {
+            errorMessage.style.display = 'block';
+            setTimeout(() => errorMessage.style.display = 'none', 3000);
+        }
+
+        function movePlayer(direction) {
+            const pathPoints = [
+                { x: 10, y: 10 }, { x: 25, y: 8 }, { x: 40, y: 12 }, { x: 55, y: 18 },
+                { x: 70, y: 22 }, { x: 85, y: 21 }, { x: 78, y: 35 }, { x: 65, y: 48 },
+                { x: 52, y: 57 }, { x: 38, y: 55 }, { x: 25, y: 65 }, { x: 15, y: 80 }
+            ];
+
+            let newPosition = currentMilestone;
+            
+            if (direction === 'forward' && currentMilestone < pathPoints.length - 1) {
+                newPosition = currentMilestone + 1;
+            } else if (direction === 'backward' && currentMilestone > 0) {
+                newPosition = currentMilestone - 1;
+            }
+
+            if (newPosition !== currentMilestone) {
+                currentMilestone = newPosition;
+                
+                // Update player position
+                const point = pathPoints[currentMilestone];
+                player.style.left = `calc(${point.x}% - 20px)`;
+                player.style.top = `calc(${point.y}% - 20px)`;
+
+                // Unlock current milestone
+                const milestoneElements = document.querySelectorAll('.milestone');
+                milestoneElements[currentMilestone].classList.remove('locked');
+                milestoneElements[currentMilestone].classList.add('unlocked');
+                milestoneElements[currentMilestone].innerHTML = currentMilestone + 1;
+
+                // Add unlock animation
+                setTimeout(() => {
+                    milestoneElements[currentMilestone].style.animation = 'unlock 0.5s ease';
+                }, 100);
+            }
+        }
+
+        function changeBackground(theme) {
+            const backgrounds = {
+                sunset: 'linear-gradient(45deg, #ff9a9e, #fecfef, #fecfef, #ff9a9e)',
+                ocean: 'linear-gradient(45deg, #667eea, #764ba2, #667eea, #764ba2)',
+                forest: 'linear-gradient(45deg, #11998e, #38ef7d, #11998e, #38ef7d)',
+                lavender: 'linear-gradient(45deg, #e0c3fc, #9bb5ff, #e0c3fc, #9bb5ff)'
+            };
+            
+            document.body.style.background = backgrounds[theme];
+            document.body.style.backgroundSize = '400% 400%';
+        }
+
+        // Event listeners
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'ArrowRight':
+                    e.preventDefault();
+                    movePlayer('forward');
+                    break;
+                case 'ArrowDown':
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    movePlayer('backward');
+                    break;
+                case 'Enter':
+                    e.preventDefault();
+                    openMilestone(currentMilestone);
+                    break;
+            }
+        });
+
+        // Touch controls for mobile
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX > 50) movePlayer('forward');
+                else if (deltaX < -50) movePlayer('backward');
+            } else {
+                if (deltaY > 50) movePlayer('backward');
+                else if (deltaY < -50) movePlayer('forward');
+            }
+        });
+
+        // Initialize
+        createFloatingHearts();
+        positionMilestones();
+
+        // Close modal on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Close modal on outside click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+    </script>
+</body>
+</html>

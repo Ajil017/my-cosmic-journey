@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Please Read Before Entering</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: #02010a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #d8d8ff;
+            overflow-x: hidden;
+            perspective: 1200px;
+        }
+
+        #star-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        /* Glowing orbs behind the card */
+        .ambient-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.5;
+            animation: pulse-glow 8s infinite alternate;
+        }
+        .glow-1 { background: rgba(147, 51, 234, 0.4); top: -10%; left: -10%; }
+        .glow-2 { background: rgba(236, 72, 153, 0.3); bottom: -10%; right: -10%; animation-delay: -4s; }
+
+        @keyframes pulse-glow {
+            0% { transform: scale(0.8) translate(0, 0); opacity: 0.3; }
+            100% { transform: scale(1.2) translate(50px, -50px); opacity: 0.6; }
+        }
+
+        .container {
+            background: rgba(15, 10, 30, 0.5);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            box-shadow: 0 0 50px rgba(139, 92, 246, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.02);
+            max-width: 750px;
+            width: 100%;
+            padding: 45px;
+            position: relative;
+            z-index: 10;
+            transform-style: preserve-3d;
+            /* Variables set by JS */
+            transform: rotateX(var(--rotateX, 0deg)) rotateY(var(--rotateY, 0deg));
+            transition: transform 0.1s ease-out, box-shadow 0.3s ease;
+            animation: ethereal-float 6s infinite ease-in-out;
+        }
+
+        @keyframes ethereal-float {
+            0%, 100% { transform: translateY(0) rotateX(var(--rotateX, 0deg)) rotateY(var(--rotateY, 0deg)); }
+            50% { transform: translateY(-10px) rotateX(var(--rotateX, 0deg)) rotateY(var(--rotateY, 0deg)); }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+            transform: translateZ(40px);
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #fbc2eb 0%, #a18cd1 50%, #fbc2eb 100%);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: shine 4s linear infinite;
+            text-shadow: 0 0 20px rgba(161, 140, 209, 0.4);
+        }
+
+        @keyframes shine {
+            to { background-position: 200% center; }
+        }
+
+        .subtitle {
+            font-size: 1.15rem;
+            color: #a7a7c7;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+
+        .rules-section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 30px;
+            margin: 25px 0;
+            border-left: 4px solid #d946ef;
+            box-shadow: inset 0 0 15px rgba(217, 70, 239, 0.05);
+            transform: translateZ(20px);
+        }
+
+        .rules-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #e0e0ff;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
+        .rules-title::before {
+            content: "✨";
+            margin-right: 12px;
+            font-size: 1.4rem;
+            filter: drop-shadow(0 0 5px #d946ef);
+        }
+
+        .rule-item {
+            background: rgba(255, 255, 255, 0.04);
+            margin: 12px 0;
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .rule-item:hover {
+            transform: translateX(8px) scale(1.02);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(217, 70, 239, 0.3);
+            box-shadow: 0 0 20px rgba(217, 70, 239, 0.15);
+        }
+
+        .rule-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #d946ef, #8b5cf6);
+            color: white;
+            min-width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-size: 0.95rem;
+            margin-right: 15px;
+            font-weight: 700;
+            box-shadow: 0 0 15px rgba(217, 70, 239, 0.5);
+            margin-top: 2px;
+        }
+
+        .rule-item strong {
+            color: #f472b6;
+            margin-right: 5px;
+            text-shadow: 0 0 8px rgba(244, 114, 182, 0.4);
+        }
+
+        .rule-item div {
+            flex: 1;
+            line-height: 1.5;
+            color: #cbd5e1;
+        }
+        
+        .A.message {
+            margin-top: 20px;
+            background: rgba(217, 70, 239, 0.05);
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #cbd5e1;
+            border: 1px dashed rgba(217, 70, 239, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .A.message::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            animation: message-sweep 4s infinite;
+        }
+
+        @keyframes message-sweep {
+            100% { left: 200%; }
+        }
+
+        .audio-check {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 25px;
+            margin: 25px 0;
+            text-align: center;
+            transform: translateZ(25px);
+        }
+
+        .audio-title {
+            font-size: 1.3rem;
+            color: #fca5a5;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 0 0 10px rgba(252, 165, 165, 0.3);
+        }
+
+        .audio-title::before {
+            content: "🎵";
+            margin-right: 10px;
+        }
+
+        .volume-test {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            transition: all 0.3s ease;
+        }
+
+        .test-button {
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 30px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            margin: 5px;
+            font-family: 'Outfit', sans-serif;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .test-button::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .test-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
+        }
+
+        .test-button:hover::before { left: 100%; }
+
+        .checklist {
+            margin: 30px 0;
+            transform: translateZ(30px);
+        }
+
+        .checklist-title {
+            font-size: 1.4rem;
+            color: #e0e0ff;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.04);
+            margin: 12px 0;
+            padding: 18px 20px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        .checkbox-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(5px);
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.1);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid #64748b;
+            border-radius: 6px;
+            margin-right: 18px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: grid;
+            place-content: center;
+        }
+
+        .checkbox-item input[type="checkbox"]::before {
+            content: "";
+            width: 14px;
+            height: 14px;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+            transform: scale(0);
+            background: white;
+            transition: 0.3s transform cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .checkbox-item input[type="checkbox"]:checked {
+            background: #d946ef;
+            border-color: #d946ef;
+            box-shadow: 0 0 20px rgba(217, 70, 239, 0.6);
+        }
+
+        .checkbox-item input[type="checkbox"]:checked::before {
+            transform: scale(1);
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            flex: 1;
+            font-size: 1.05rem;
+            font-weight: 300;
+            color: #94a3b8;
+            transition: all 0.3s;
+        }
+        
+        .checkbox-item input[type="checkbox"]:checked + label {
+            color: #f8fafc;
+            font-weight: 500;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .proceed-section {
+            text-align: center;
+            margin-top: 40px;
+            transform: translateZ(50px);
+        }
+
+        .proceed-button {
+            background: linear-gradient(135deg, #f72585, #7209b7, #3a0ca3);
+            background-size: 200% auto;
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            border-radius: 40px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 0.3;
+            pointer-events: none;
+            font-family: 'Outfit', sans-serif;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 0 rgba(0,0,0,0);
+        }
+
+        .proceed-button.active {
+            opacity: 1;
+            pointer-events: all;
+            box-shadow: 0 0 30px rgba(247, 37, 133, 0.5);
+            animation: magic-btn 3s infinite linear;
+        }
+
+        @keyframes magic-btn {
+            0% { background-position: 0% center; box-shadow: 0 0 20px rgba(247, 37, 133, 0.4); }
+            50% { box-shadow: 0 0 40px rgba(114, 9, 183, 0.6); }
+            100% { background-position: 200% center; box-shadow: 0 0 20px rgba(247, 37, 133, 0.4); }
+        }
+
+        .proceed-button.active:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 0 50px rgba(247, 37, 133, 0.8);
+        }
+
+        .warning {
+            background: rgba(234, 179, 8, 0.1);
+            border: 1px solid rgba(234, 179, 8, 0.3);
+            border-radius: 12px;
+            padding: 18px;
+            margin: 25px 0;
+            text-align: center;
+            color: #fef08a;
+            font-weight: 400;
+            box-shadow: 0 0 20px rgba(234, 179, 8, 0.1);
+            transform: translateZ(10px);
+        }
+
+        .emoji {
+            font-size: 1.5rem;
+            margin: 0 8px;
+            vertical-align: middle;
+            filter: drop-shadow(0 0 5px rgba(255,255,0,0.5));
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+    <canvas id="star-canvas"></canvas>
+    <div class="container" id="tilt-card">
+        <div class="header">
+            <h1 class="title">🌟 Welcome! 🌟</h1>
+            <p class="subtitle">Please read the instructions carefully before proceeding</p>
+        </div>
+
+        <div class="rules-section">
+            <h2 class="rules-title">Important Rules & Guidelines</h2>
+            
+            <div class="rule-item">
+                <span class="rule-number">1</span>
+                <div><strong>Audio Experience:</strong> This webpage contains audio elements that are designed to enhance your experience. Please ensure you have headphones or speakers ready.</div>
+            </div>
+
+            <div class="rule-item">
+                <span class="rule-number">2</span>
+                <div><strong>Volume Level:</strong> Set your volume to a comfortable level (around 50-70%) to avoid sudden loud sounds that might be jarring.</div>
+            </div>
+
+            <div class="rule-item">
+                <span class="rule-number">3</span>
+                <div><strong>Controls:</strong> For the best experience, use the arrow keys to move and click Enter to open each thing, or mouse click on it.</div>
+            </div>
+
+            <div class="rule-item">
+                <span class="rule-number">4</span>
+                <div><strong>Headphones Recommended:</strong> While not mandatory, headphones will provide the most immersive experience.</div>
+            </div>
+
+            <div class="rule-item">
+                <span class="rule-number">5</span>
+                <div><strong>Take Your Time:</strong> Don't rush through the content. Allow yourself to fully experience what's presented.</div>
+            </div>
+            <div class ="rule-item A message">
+                <span class="newp"></span> 
+                <div>
+                <strong>📌 Important Message: </strong>Those who are playing this, just remember that it contains many things, maybe some will be in tears and maybe some will be very happy while seeing these all things. And first of all, while clicking the continue button, you will go to another world where you need to open the first unlocked piece to move further and open all the remaining pieces. Please don't rush to complete or simply click the right button to move fast, it will destroy your whole experience. Move forward by repeatedly clicking the right arrow button (or Arrow keys/buttons) and also check all the pieces without missing anything.
+                </div>
+            </div>
+        </div>
+
+        <div class="audio-check">
+            <h3 class="audio-title">Audio Level Test</h3>
+            <p>Please test your audio to ensure it's at a comfortable level:</p>
+            <div class="volume-test">
+                <button class="test-button" onclick="playTestSound()">🔊 Test Volume</button>
+                <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+                    Click the button above to hear a gentle test tone
+                </p>
+            </div>
+        </div>
+
+        <div class="warning">
+            <span class="emoji">⚠️</span>
+            <strong>Important:</strong> Please ensure all items below are checked before proceeding
+            <span class="emoji">⚠️</span>
+        </div>
+
+        <div class="checklist">
+            <h3 class="checklist-title">Pre-Entry Checklist</h3>
+            
+            <div class="checkbox-item">
+                <input type="checkbox" id="rules-read" onchange="checkAllItems()">
+                <label for="rules-read">📖 I have read and understood all the rules above</label>
+            </div>
+
+            <div class="checkbox-item">
+                <input type="checkbox" id="volume-tested" onchange="checkAllItems()">
+                <label for="volume-tested">🔊 I have tested my audio and adjusted the volume appropriately</label>
+            </div>
+
+            <div class="checkbox-item">
+                <input type="checkbox" id="headset-ready" onchange="checkAllItems()">
+                <label for="headset-ready">🎧 I have my headphones/speakers ready (headphones recommended)</label>
+            </div>
+
+            <div class="checkbox-item">
+                <input type="checkbox" id="environment-prepared" onchange="checkAllItems()">
+                <label for="environment-prepared">🏠 I am in a suitable environment for an audio experience</label>
+            </div>
+        </div>
+
+        <div class="proceed-section">
+            <button class="proceed-button" id="proceed-btn" onclick="proceedToForm()">
+                ✨ Enter the Experience ✨
+            </button>
+            <p style="margin-top: 15px; font-size: 0.9rem; color: #666;">
+                Complete all checklist items to activate the button
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Audio context for the test sound
+        let audioContext;
+        let testSoundPlayed = false;
+
+        function playTestSound() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            // Create a gentle test tone
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 note
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.1);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 1);
+            
+            testSoundPlayed = true;
+            
+            // Visual feedback
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = '✅ Test Played';
+            button.style.background = 'linear-gradient(45deg, #48bb78, #38a169)';
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.background = 'linear-gradient(45deg, #ed64a6, #d53f8c)';
+            }, 2000);
+        }
+
+        function checkAllItems() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const proceedButton = document.getElementById('proceed-btn');
+            
+            let allChecked = true;
+            checkboxes.forEach(checkbox => {
+                if (!checkbox.checked) {
+                    allChecked = false;
+                }
+            });
+            
+            if (allChecked) {
+                proceedButton.classList.add('active');
+            } else {
+                proceedButton.classList.remove('active');
+            }
+        }
+
+        function proceedToForm() {
+            const proceedButton = document.getElementById('proceed-btn');
+            if (proceedButton.classList.contains('active')) {
+                // Add a nice transition effect
+                document.body.style.transition = 'opacity 0.5s ease-out';
+                document.body.style.opacity = '0';
+                
+                setTimeout(() => {
+                    // Force the browser to not cache the destination page by appending a timestamp
+                    window.location.href = 'forM.html?nocache=' + new Date().getTime();
+                }, 500);
+            }
+        }
+
+        // --- Stars Canvas Background Logic ---
+        const canvas = document.getElementById('star-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, stars;
+
+        function initStars() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            stars = [];
+            for(let i=0; i<300; i++) {
+                stars.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    r: Math.random() * 1.5 + 0.5,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: (Math.random() - 0.5) * 0.5,
+                    alpha: Math.random(),
+                    dAlpha: (Math.random() * 0.02) - 0.01
+                });
+            }
+        }
+        
+        function animateStars() {
+            ctx.clearRect(0, 0, width, height);
+            stars.forEach(s => {
+                s.x += s.vx;
+                s.y += s.vy;
+                s.alpha += s.dAlpha;
+                if(s.alpha <= 0 || s.alpha >= 1) s.dAlpha = -s.dAlpha;
+                if(s.x < 0) s.x = width; if(s.x > width) s.x = 0;
+                if(s.y < 0) s.y = height; if(s.y > height) s.y = 0;
+
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${s.alpha})`;
+                ctx.fill();
+            });
+            requestAnimationFrame(animateStars);
+        }
+        
+        window.addEventListener('resize', initStars);
+        initStars();
+        animateStars();
+
+        // --- 3D Card Tracking Logic ---
+        document.addEventListener('mousemove', (e) => {
+            const card = document.getElementById('tilt-card');
+            const rect = card.getBoundingClientRect();
+            // Calculate center of the screen
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            
+            // Calculate mouse distance from center
+            const destX = (e.clientX - centerX) / 30;
+            const destY = -(e.clientY - centerY) / 30; // Negate to tilt towards mouse
+            
+            card.style.setProperty('--rotateX', `${destY}deg`);
+            card.style.setProperty('--rotateY', `${destX}deg`);
+        });
+
+        // Simple fade in animation on load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Page is ready - animation already handled by CSS
+        });
+    </script>
+</body>
+</html>
