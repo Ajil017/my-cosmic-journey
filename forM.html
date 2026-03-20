@@ -1046,11 +1046,58 @@ T 1000 1710
         }
 
         function setupControls() {
-            // Touch controls
-            document.getElementById('upBtn').addEventListener('click', () => movePointer('up'));
-            document.getElementById('downBtn').addEventListener('click', () => movePointer('down'));
-            document.getElementById('leftBtn').addEventListener('click', () => movePointer('left'));
-            document.getElementById('rightBtn').addEventListener('click', () => movePointer('right'));
+            let moveInterval = null;
+
+            function startMoving(direction) {
+                if (moveInterval) return;
+                movePointer(direction); // Move once immediately
+                moveInterval = setInterval(() => {
+                    movePointer(direction);
+                }, 50); // Continuously move every 50ms
+            }
+
+            function stopMoving() {
+                if (moveInterval) {
+                    clearInterval(moveInterval);
+                    moveInterval = null;
+                }
+            }
+
+            const buttons = [
+                { id: 'upBtn', dir: 'up' },
+                { id: 'downBtn', dir: 'down' },
+                { id: 'leftBtn', dir: 'left' },
+                { id: 'rightBtn', dir: 'right' }
+            ];
+
+            buttons.forEach(btn => {
+                const el = document.getElementById(btn.id);
+                
+                // Prevent default behavior like zooming or text selection on mobile
+                el.style.webkitUserSelect = 'none';
+
+                // Touch support for mobile phones
+                el.addEventListener('touchstart', (e) => {
+                    e.preventDefault(); // Stop screen from scrolling/zooming immediately
+                    startMoving(btn.dir);
+                }, { passive: false });
+                
+                el.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    stopMoving();
+                }, { passive: false });
+                
+                el.addEventListener('touchcancel', stopMoving);
+
+                // Mouse support for desktops
+                el.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    startMoving(btn.dir);
+                });
+                
+                el.addEventListener('mouseup', stopMoving);
+                el.addEventListener('mouseleave', stopMoving);
+            });
 
             // Keyboard controls
             document.addEventListener('keydown', (e) => {
