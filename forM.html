@@ -153,10 +153,10 @@
 
         .path-container {
             position: relative;
-            margin: 40px 0;
-            padding: 20px;
-            height: 250vh;
             width: 100%;
+            max-width: 1200px;
+            aspect-ratio: 1200 / 1800;
+            margin: 40px auto;
         }
 
         .s-path {
@@ -696,7 +696,7 @@
 
         <div class="path-container">
             <div class="s-path">
-                <svg id="pathSvg" viewBox="0 0 1200 1800" preserveAspectRatio="xMidYMid meet">
+                <svg id="pathSvg" viewBox="0 0 1200 1800" preserveAspectRatio="none">
                     <path id="sPath" d="
 M 100 100
 Q 250 130, 350 160
@@ -916,8 +916,8 @@ T 1000 1710
             // Position traveler at start
             const startPoint = pathElement.getPointAtLength(0);
             const traveler = document.getElementById('travelerPointer');
-            traveler.style.left = startPoint.x + 'px';
-            traveler.style.top = startPoint.y + 'px';
+            traveler.style.left = `calc(${(startPoint.x / 1200) * 100}%)`;
+            traveler.style.top = `calc(${(startPoint.y / 1800) * 100}%)`;
 
             // Create milestones
             createMilestones();
@@ -930,8 +930,8 @@ T 1000 1710
                 const milestoneEl = document.createElement('div');
                 milestoneEl.className = index === 0 ? 'milestone unlocked' : 'milestone locked';
                 milestoneEl.setAttribute('data-milestone', index);
-                milestoneEl.style.left = milestone.position.x - 50 + 'px';
-                milestoneEl.style.top = milestone.position.y - 50 + 'px';
+                milestoneEl.style.left = `calc(${(milestone.position.x / 1200) * 100}% - 50px)`;
+                milestoneEl.style.top = `calc(${(milestone.position.y / 1800) * 100}% - 50px)`;
 
                 const icon = document.createElement('div');
                 icon.className = 'milestone-icon';
@@ -991,8 +991,8 @@ T 1000 1710
         function updatePointerPosition() {
             const point = pathElement.getPointAtLength(currentPathPosition);
             const traveler = document.getElementById('travelerPointer');
-            traveler.style.left = point.x + 'px';
-            traveler.style.top = point.y + 'px';
+            traveler.style.left = `calc(${(point.x / 1200) * 100}%)`;
+            traveler.style.top = `calc(${(point.y / 1800) * 100}%)`;
         }
 
         function updatePathProgress() {
